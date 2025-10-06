@@ -2,10 +2,10 @@
 
 Code release for the **AudioToolAgent** paper. See paper here: https://arxiv.org/abs/2510.02995
 
-The repository exposes a language-agent scaffold that calls audio specialists as Model Context Protocol tools. Two ready-to-run configurations are provided:
+The repository exposes a language-agent scaffold that calls audio specialists as tools. Two ready-to-run configurations are provided:
 
 - **AudioToolAgent-GPT5** (closed): GPT-5 orchestrator with vendor APIs (OpenAI GPT-4o, Google Gemini 2.5 Flash, Mistral Voxtral) plus a local AudioFlamingo server.
-- **AudioToolAgent-Open** (open): DeepSeek-V3.1 orchestrator with Whisper (faster-whisper), Voxtral, Qwen2.5 Omni, DeSTA 2.5, and AudioFlamingo 3.
+- **AudioToolAgent-Open** (open): DeepSeek-V3.1 orchestrator with Whisper, Voxtral, Qwen2.5 Omni, DeSTA 2.5, and AudioFlamingo 3.
 
 
 ## Repository Layout
@@ -143,7 +143,3 @@ If you use this codebase, please cite the AudioToolAgent paper.
       url={https://arxiv.org/abs/2510.02995}, 
 }
 ```
-
-## License
-
-This repository is released under the MIT license. Check individual model licenses before downloading or serving them locally.
