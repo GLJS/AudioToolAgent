@@ -1,0 +1,44 @@
+name: AudioToolAgent-Open
+description: Open configuration using DeepSeek as the orchestrator and fully local tools.
+
+orchestrator:
+  name: DeepSeek-Agent
+  llm_type: vllm
+  llm_model: deepseek-ai/DeepSeek-V3.1
+  llm_url: http://127.0.0.1:8005/v1
+  api_key: EMPTY
+  max_tokens: 32768
+  temperature: 0.6
+  system_prompt: |
+    You are the AudioToolAgent orchestrator coordinating local audio tools.
+    Plan before you act, call tools for evidence, and always emit the final answer
+    between <answer> and </answer> tags. Avoid relying on any external APIs.
+  max_retries: 6
+  seed: 1234
+
+logging:
+  level: INFO
+
+# Open tool-suite: each tool is expected to run from a local OpenAI-compatible server.
+tools:
+  - type: whisper
+    enabled: true
+    params:
+      model_name: medium
+      device: auto
+      compute_type: float16
+  - type: voxtral_api
+    enabled: true
+    params:
+      model_name: voxtral-small-latest
+  - type: qwen2_5omni
+    enabled: true
+    params:
+      model_name: Qwen/Qwen2.5-Omni-7B
+  - type: desta25
+    enabled: true
+    params:
+      model_name: DeSTA-ntu/DeSTA2.5-Audio-Llama-3.1-8B
+  - type: audioflamingo_api
+    enabled: true
+    params: {}

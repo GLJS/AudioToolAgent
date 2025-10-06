@@ -1,0 +1,42 @@
+name: AudioToolAgent-GPT5
+description: Closed-source configuration using GPT-5 orchestrator and vendor APIs.
+
+orchestrator:
+  name: GPT5-Agent
+  llm_type: openai
+  llm_model: gpt-5
+  llm_url: https://api.openai.com/v1
+  api_key_env: OPENAI_API_KEY
+  max_tokens: 4096
+  temperature: 0.2
+  system_prompt: |
+    You are the AudioToolAgent orchestrator coordinating specialised audio tools.
+    Reason about the question, call tools when useful, and return a final answer
+    wrapped between <answer> and </answer> tags. Prefer to cross-check important
+    details with multiple tools when the evidence conflicts.
+  max_retries: 4
+  seed: 42
+
+logging:
+  level: INFO
+
+# Tool suite aligns with the closed-source configuration described in the paper.
+tools:
+  - type: gpt4o
+    enabled: true
+    params:
+      model_name: gpt-4o-audio-preview
+  - type: gemini
+    enabled: true
+    params:
+      model_name: gemini-2.5-flash
+  - type: voxtral_api
+    enabled: true
+    params:
+      model_name: voxtral-small-latest
+  - type: qwen2_5omni
+    enabled: true
+    params: {}
+  - type: audioflamingo_api
+    enabled: true
+    params: {}

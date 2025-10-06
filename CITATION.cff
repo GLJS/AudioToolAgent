@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "AudioToolAgent: An Agentic Framework for Audio-Language Models"
+authors:
+  - family-names: "Wijngaard"
+    given-names: "Gijs"
+  - family-names: "Formisano"
+    given-names: "Elia"
+  - family-names: "Dumontier"
+    given-names: "Michel"
+date-released: 2025-10-03
+url: "https://github.com/GLJS/AudioToolAgent"
+preferred-citation:
+  type: article
+  title: "AudioToolAgent: An Agentic Framework for Audio-Language Models"
+  authors:
+    - family-names: "Wijngaard"
+      given-names: "Gijs"
+    - family-names: "Formisano"
+      given-names: "Elia"
+    - family-names: "Dumontier"
+      given-names: "Michel"
+  year: 2025
+  url: "https://arxiv.org/abs/2510.02995"
+  repository: "arXiv"
+  identifiers:
+    - type: other
+      value: "arXiv:2510.02995"
+      description: "arXiv preprint"
