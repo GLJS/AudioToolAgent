@@ -1,16 +1,17 @@
 """
 Voxtral API Tool
-Transcribes audio using the Voxtral model via the Mistral API.
+Transcribes audio using the Voxtral model via OpenRouter API.
 """
 import base64
 import json
 import logging
 import os
+import time
 from typing import Any, Dict, Optional
 
 from qwen_agent.tools.base import register_tool
 from qwen_agent.tools.base import BaseTool
-from mistralai import Mistral
+from openai import OpenAI
 
 from .audio_utils import cleanup_temp_file, validate_audio_file, resolve_audio_path
 
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 @register_tool('voxtral_api')
 class VoxtralAPITool(BaseTool):
-    """Transcribe audio using the Mistral Voxtral model via API."""
+    """Transcribe audio using the Mistral Voxtral model via OpenRouter."""
 
     parameters = [
         {
@@ -37,13 +38,16 @@ class VoxtralAPITool(BaseTool):
         }
     ]
 
-    def __init__(self, model_name: str = "voxtral-small-latest", default_max_tokens: int = 4096, stream_callback: Optional[Any] = None, **kwargs):
+    def __init__(self, model_name: str = "mistralai/voxtral-small-24b-2507", default_max_tokens: int = 4096, stream_callback: Optional[Any] = None, **kwargs):
         super().__init__()
         self.model_name = model_name
         self.default_max_tokens = default_max_tokens
         self.stream_callback = stream_callback
-        self.client = Mistral(api_key=os.environ['MISTRAL_API_KEY'])
-        logger.info(f"Initialized {self.__class__.__name__} with model={model_name}")
+        self.client = OpenAI(
+            api_key=os.environ['OPENROUTER_API_KEY'],
+            base_url="https://openrouter.ai/api/v1",
+        )
+        logger.info(f"Initialized {self.__class__.__name__} with model={model_name} via OpenRouter")
 
     def call(self, params: Any, **kwargs) -> str:
         if isinstance(params, str):
@@ -73,7 +77,7 @@ class VoxtralAPITool(BaseTool):
         try:
             result = self._process_request(params)
         except Exception as e:
-            logger.exception("Mistral Voxtral API call failed")
+            logger.exception("Voxtral API call failed")
             result = {'error': str(e)}
 
         if self.stream_callback:
@@ -102,39 +106,46 @@ class VoxtralAPITool(BaseTool):
             self.stream_callback({
                 'type': 'tool_progress',
                 'tool': self.__class__.__name__,
-                'content': f'Transcribing via Mistral Voxtral ({model_name})...',
-                'full_content': f'Transcribing via Mistral Voxtral ({model_name})...'
+                'content': f'Transcribing via Voxtral ({model_name}) on OpenRouter...',
+                'full_content': f'Transcribing via Voxtral ({model_name}) on OpenRouter...'
             })
 
-        if 'MISTRAL_API_KEY' not in os.environ:
-            raise RuntimeError('MISTRAL_API_KEY environment variable is not set')
+        if 'OPENROUTER_API_KEY' not in os.environ:
+            raise RuntimeError('OPENROUTER_API_KEY environment variable is not set')
 
-        # No segment extraction; use original file
         seg_path = audio_path
         is_temp = False
 
         with open(seg_path, 'rb') as f:
             audio_base64 = base64.b64encode(f.read()).decode('utf-8')
 
-        chat_response = self.client.chat.complete(
-            model=model_name,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {"type": "input_audio", "input_audio": audio_base64},
-                    {"type": "text", "text": prompt},
-                ],
-            }],
-            max_tokens=max_tokens
-        )
+        # Retry loop with exponential backoff
+        chat_response = None
+        for attempt in range(10):
+            try:
+                chat_response = self.client.chat.completions.create(
+                    model=model_name,
+                    messages=[{
+                        "role": "user",
+                        "content": [
+                            {"type": "input_audio", "input_audio": {"data": audio_base64, "format": "wav"}},
+                            {"type": "text", "text": prompt},
+                        ],
+                    }],
+                    max_tokens=max_tokens,
+                )
+                break
+            except Exception as e:
+                wait_time = min(2 ** attempt, 30)
+                logger.warning(f"Voxtral API attempt {attempt+1}/10 failed: {e} (retry in {wait_time}s)")
+                if attempt < 9:
+                    time.sleep(wait_time)
+                else:
+                    raise
 
-
-        # The SDK returns a string in message.content
         text = chat_response.choices[0].message.content
         cleanup_temp_file(seg_path, is_temp)
         return {
             'text': text,
             'message': f'Transcription complete ({len(text.split())} words)'
         }
-
-

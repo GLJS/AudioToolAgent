@@ -1,0 +1,50 @@
+name: AudioToolAgent-Open
+description: Open configuration using Qwen3-235B orchestrator with local tools.
+
+orchestrator:
+  name: Qwen3-Agent
+  llm_type: chutes
+  llm_model: Qwen/Qwen3-235B-A22B
+  max_tokens: 32768
+  temperature: 0.7
+  system_prompt: |
+    You are the AudioToolAgent orchestrator coordinating local audio tools.
+    Plan before you act, call tools for evidence, and always emit the final answer
+    between <answer> and </answer> tags. Avoid relying on any external APIs.
+  max_retries: 6
+  seed: 1234
+  fallback:
+    name: Qwen3-Agent-Fallback
+    llm_type: openrouter
+    llm_model: qwen/qwen3-235b-a22b
+    api_key_env: OPENROUTER_API_KEY
+    max_tokens: 32768
+    temperature: 0.7
+    system_prompt: |
+      You are the AudioToolAgent orchestrator coordinating local audio tools.
+      Plan before you act, call tools for evidence, and always emit the final answer
+      between <answer> and </answer> tags. Avoid relying on any external APIs.
+    max_retries: 6
+    seed: 1234
+
+logging:
+  level: INFO
+
+# Open tool-suite: each tool is expected to run from a local OpenAI-compatible server.
+tools:
+  - type: qwen3_instruct
+    enabled: true
+    params: {}
+  - type: qwen2_5omni
+    enabled: true
+    params:
+      model_name: Qwen/Qwen2.5-Omni-7B
+  - type: audioflamingo_api
+    enabled: true
+    params: {}
+  - type: whisper
+    enabled: true
+    params:
+      model_name: medium
+      device: auto
+      compute_type: float16

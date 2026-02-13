@@ -53,7 +53,7 @@ def _iter_dataset(split: str) -> Iterable[dict]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run MMAU benchmark with the open configuration")
-    parser.add_argument("--config", default="configs/open_deepseek.yaml", help="Path to open configuration file")
+    parser.add_argument("--config", default="configs/audiotoolagent_open.yaml", help="Path to open configuration file")
     parser.add_argument("--split", default="test_mini", help="Dataset split to evaluate (default: test_mini)")
     parser.add_argument("--limit", type=int, help="Optional limit on number of samples")
     parser.add_argument("--no-stream", action="store_true", help="Disable streaming output")

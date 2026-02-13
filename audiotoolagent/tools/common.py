@@ -53,6 +53,20 @@ def get_server_url(env_var: str, default_url: str) -> str:
     return url_from_file if url_from_file else default_url
 
 
+def get_server_urls(env_var: str, default_url: str) -> list:
+    """Resolve server URL(s) from env or hostnames.txt. Supports comma-separated URLs for load balancing."""
+    url = os.getenv(env_var)
+    if url:
+        return [u.strip() for u in url.split(',') if u.strip()]
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    hostnames_path = os.path.join(root_dir, 'hostnames.txt')
+    mapping = _read_hostnames_map(hostnames_path)
+    url_from_file = mapping.get(env_var)
+    if url_from_file:
+        return [u.strip() for u in url_from_file.split(',') if u.strip()]
+    return [default_url]
+
+
 class OfflineAudioModelTool(BaseTool, ABC):
     """Base class for offline VLLM audio model tools"""
     

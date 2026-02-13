@@ -13,7 +13,6 @@ fastapi
 uvicorn
 openai
 google-genai
-mistralai
 requests
 vllm[audio]==0.10.1.1
 faster-whisper

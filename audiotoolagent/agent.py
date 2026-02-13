@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import random
+import threading
 import time
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 from qwen_agent.llm.schema import Message
-from sentence_transformers import SentenceTransformer
 
 from .config import (
     initialize_agent,
@@ -21,14 +22,34 @@ from .config import (
 
 logger = logging.getLogger(__name__)
 
-_sentence_model: SentenceTransformer | None = None
+_sentence_model = None
+_sentence_model_lock = threading.Lock()
 
 
-def _sentence_encoder() -> SentenceTransformer:
+def _sentence_encoder():
     global _sentence_model
     if _sentence_model is None:
-        _sentence_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        with _sentence_model_lock:
+            if _sentence_model is None:
+                from sentence_transformers import SentenceTransformer
+                _sentence_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     return _sentence_model
+
+
+def _read_hostnames_value(key: str) -> Optional[str]:
+    try:
+        from pathlib import Path
+        hostnames_path = Path(__file__).resolve().parent.parent / 'hostnames.txt'
+        if not hostnames_path.exists():
+            return None
+        with open(hostnames_path) as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith(f"{key}="):
+                    return line.split("=", 1)[1].split(",")[0].strip()
+    except Exception:
+        pass
+    return None
 
 
 def clean_final_answer(text: str) -> str:
@@ -47,6 +68,19 @@ def clean_final_answer(text: str) -> str:
 
 
 def _find_most_similar_option(text: str, options: List[str]) -> Optional[str]:
+    """Find most similar option using sentence embeddings (remote API first, local fallback)."""
+    url = os.getenv('SENTENCE_SIMILARITY_SERVER') or _read_hostnames_value('SENTENCE_SIMILARITY_SERVER')
+    if url:
+        try:
+            import requests
+            base = url.rstrip('/')
+            endpoint = f"{base}/similarity" if base.endswith('/v1') else f"{base}/v1/similarity"
+            resp = requests.post(endpoint, json={"text": text, "options": options}, timeout=10)
+            if resp.status_code == 200:
+                return resp.json()["best_option"]
+        except Exception:
+            pass
+    # Fallback to local
     encoder = _sentence_encoder()
     text_embedding = encoder.encode([text])
     option_embeddings = encoder.encode(options)

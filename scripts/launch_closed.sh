@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launch local services required for the GPT-5 (closed) configuration.
+# Launch local services required for the Gemini 3 Pro (closed) configuration.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

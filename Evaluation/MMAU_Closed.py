@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evaluate AudioToolAgent (GPT-5 configuration) on MMAU."""
+"""Evaluate AudioToolAgent (closed configuration) on MMAU."""
 from __future__ import annotations
 
 import argparse
@@ -51,8 +51,8 @@ def _iter_dataset(split: str) -> Iterable[dict]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run MMAU benchmark with GPT-5 configuration")
-    parser.add_argument("--config", default="configs/closed_gpt5.yaml", help="Path to GPT-5 configuration file")
+    parser = argparse.ArgumentParser(description="Run MMAU benchmark with closed configuration")
+    parser.add_argument("--config", default="configs/audiotoolagent.yaml", help="Path to closed configuration file")
     parser.add_argument("--split", default="test_mini", help="Dataset split to evaluate (default: test_mini)")
     parser.add_argument("--limit", type=int, help="Optional limit on number of samples")
     parser.add_argument("--no-stream", action="store_true", help="Disable streaming output")

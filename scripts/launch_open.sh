@@ -24,7 +24,7 @@ cd "$ROOT_DIR"
 
 start_service qwen2_5omni python vllm_models/qwen2_5omni_server.py
 sleep 5
-start_service desta25 uvicorn audiotoolagent.apis.desta25_api:app --host 0.0.0.0 --port 4004
+start_service qwen3_instruct uvicorn audiotoolagent.apis.qwen3_instruct_api:app --host 0.0.0.0 --port 4014
 sleep 5
 start_service audioflamingo uvicorn af3.app:app --host 0.0.0.0 --port 4010
 
